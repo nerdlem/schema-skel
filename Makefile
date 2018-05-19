@@ -7,7 +7,7 @@ PGRESTTMUXNAME=launch-rest-test
 all:
 	@echo Please select one or more targets to make:
 	@echo ""
-	@echo test -- update perl dependencies, deploy and test schema and perl API
+	@echo test -- deploy and test schema
 	@echo deploy -- deploy database with all deltas. Use environment variables to customize
 	@echo destroy -- remove the database schema. Use env variables to customize
 
