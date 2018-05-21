@@ -3,7 +3,7 @@
 -- It might be a good idea to employ a transaction and verifying that this is
 -- not being run on sensitive instances, such as production.
 
-SET SESSION app.ephemeral_dbs = 'dev,qa';
+SET SESSION app.ephemeral_dbs = 'dev,qa,lem';
 
 BEGIN;
 
