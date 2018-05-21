@@ -8,4 +8,4 @@ To start your project, simply clone this and start adding your database / progra
 
 You might want to install the `pgtap` PostgreSQL extension and the `pg_prove` tool to get a working installation that is able to test itself.
 
-See [this article](https://lem.click/post/handling-database-schema-changes/) for a detailed discussion on how to channel your database channels through deltas.
+See [this article](https://lem.click/post/handling-database-schema-changes/) for a detailed discussion on how to channel your database changes through deltas.
