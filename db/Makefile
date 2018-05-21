@@ -27,7 +27,8 @@ deltas: schema_errata.csv
 	  while read delta; do \
 			echo Applying $$delta... ;\
 	  	PSQLRC=psqlrc-delta psql -f $$delta || \
-				( cd schema-deltas; make --quiet `basename $$delta .sql` ) || \
+				( cd schema-deltas; \
+				  make --quiet `basename $$delta .sql` ) || \
 					exit 255; \
 	done
 
