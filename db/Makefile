@@ -23,7 +23,7 @@ FORCE:
 
 deltas: schema_errata.csv
 	find ./schema-deltas -type f -name '*.sql' |\
-	 grep --invert-match --fixed-strings --file $< |\
+	 grep --invert-match --fixed-strings --file $< | sort |\
 	  while read delta; do \
 			echo Applying $$delta... ;\
 	  	PSQLRC=psqlrc-delta psql -f $$delta || \
