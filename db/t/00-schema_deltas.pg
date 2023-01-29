@@ -1,0 +1,9 @@
+BEGIN;
+
+SET search_path TO :'nspace', public;
+
+SELECT  plan(1);
+
+SELECT has_table(:'nspace', 'schema_errata', 'schema_errata table is present');
+
+ROLLBACK;

@@ -1,10 +1,39 @@
 # Database schema generation scripts
 
-The `.ddl` files in this directory contains the DDL that defines the required objects in the database. The general idea is to split your database schema creation in sensible sections that can be applied in sequence by the `Makefile` rules -- take a look at that file to see the specific order in which they are invoked.
+The `.ddl` files in this directory contains the DDL that defines the required objects in the database. The general idea is to split your database schema creation in sensible sections that can be applied in sequence by the `Makefile` rules -- take a look at that file to see the specific order in which they are invoked. The basic actions provided by these rules are also available as standalone shell scripts. This helps with deployments employing AWS Lambda, where GNU Make is unable to launch external programs due to its use of blocked system calls.
 
 Of course, you're free to adapt this to your own style. In some cases a single `.ddl` file with all commands will do. In more complex scenarios, you might want to have subdirectories containing the DDL for large parts of your database schema.
 
 In general terms, these `.ddl` files are meant to deploy your database schema to a plain, blank database.
+
+## Makefile provisioning and AWS Lambda
+
+At the time of this writing, the AWS Lambda environment imposes a series of security restrictions on the workloads it executes. One such restriction involves the use of _tracing syscalls_. GNU Make uses some of these calls internally to track the status of its subprocesses, which causes issues when attempting deployments via λ. These examples are migrating towards a shell-script based deployment strategy to simplify deployments in these types of environments.
+
+For any new applications you should plan on invoking the following scripts instead of the corresponding `Makefile` targets.
+
+| Script         | Replaces `make` target | Purpoose |
+| :------------- | :--------------------- | :------- |
+| `./deploy.sh`  | `deploy`               | Deploys a pristine database schema _without_ any additional schema deltas. |
+| `./deltas.sh`  | `deltas`               | Applies all pending deltas. |
+| `./destroy.sh` | `destroy`              | Destroys the schema and its data using your provided scripts. |
+| `./test.sh`    | `test`                 | Run database test suite with `pg_prove`. |
+
+## Namespace support
+
+The provided scripts create a single namespace to help keep the different components of a project logically separated. To set the desired namespace value you can use the environment variable `$PGNAMESPACE`. Note that this environment variable is folded into a `psql` variable `:nspace` that is expected to be used across the rest of the provisioning scripts.
+
+The design assumes that there will be at least one namespace per application sharing the database.
+
+By default, the scripts attempt a conditional namespace creation, as depicted below.
+
+```sql
+CREATE SCHEMA IF NOT EXISTS :"nspace";
+```
+
+Both the `Makefile` and supplied shell scripts default to `skel` as the namespace.
+
+On destruction, the provided scripts do not attempt to destroy the namespace, as this simplifies overall database provisioning in some cases. Feel free to adjust to the specifics of your use case.
 
 ## Configuring database coordinates
 

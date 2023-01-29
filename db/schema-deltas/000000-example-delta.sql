@@ -1,9 +1,11 @@
 BEGIN;
 
-INSERT INTO schema_errata ( delta )
-VALUES ( '000001-example-delta' );
+SET search_path TO :"nspace", public;
 
-CREATE TABLE example (
+INSERT INTO :"nspace".schema_errata ( delta )
+VALUES ( '000000-example-delta' );
+
+CREATE TABLE :"nspace".example (
   key SERIAL NOT NULL PRIMARY KEY,
   value TEXT
 );
