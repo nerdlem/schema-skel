@@ -12,7 +12,7 @@ At the time of this writing, the AWS Lambda environment imposes a series of secu
 
 For any new applications you should plan on invoking the following scripts instead of the corresponding `Makefile` targets.
 
-| Script         | Replaces `make` target | Purpoose |
+| Script         | Replaces `make` target | Purpose |
 | :------------- | :--------------------- | :------- |
 | `./deploy.sh`  | `deploy`               | Deploys a pristine database schema _without_ any additional schema deltas. |
 | `./deltas.sh`  | `deltas`               | Applies all pending deltas. |
