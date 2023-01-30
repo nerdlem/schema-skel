@@ -14,10 +14,10 @@ all:
 test: db-test destroy
 
 db-test: deploy
-	( cd db; PSQLRC=psqlrc-test make test )
+	@( cd db; PSQLRC=psqlrc-test $(MAKE) test )
 
 deploy:
-	( cd db; PSQLRC=psqlrc-test make all deltas )
+	@( cd db; PSQLRC=psqlrc-test $(MAKE) all deltas )
 
 destroy:
-	( cd db; PSQLRC=psqlrc-test make destroy )
+	@( cd db; PSQLRC=psqlrc-test $(MAKE) destroy )
