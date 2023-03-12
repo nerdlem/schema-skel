@@ -3,3 +3,10 @@
 -- to the actual tables.
 
 SET search_path TO :"nspace", public;
+
+CREATE TABLE :"nspace"._inh_audit (
+    created_ts TIMESTAMP NOT NULL DEFAULT NOW(),
+    created_by TEXT NOT NULL DEFAULT current_user
+);
+
+COMMENT ON TABLE :"nspace"._inh_audit IS 'This table provides columns to track addition of individual rows. The timestamp and database username is recorded for each row.';

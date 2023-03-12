@@ -4,8 +4,9 @@ set -e
 . ./setup.sh
 
 PGNAMESPACE=${PGNAMESPACE:=skel}
+PGAPINAMESPACE=${PGAPINAMESPACE:=api${PGNAMESPACE}}
 PSQL=${PSQL:=psql}
-PSQL_CMD=${PSQL_CMD:=${PSQL} --set=nspace="${PGNAMESPACE}"}
+PSQL_CMD=${PSQL_CMD:=${PSQL} --set=nspace="${PGNAMESPACE}" --set=apinspace="${PGAPINAMESPACE}"}
 
 echo -- Destroying schema on namespace "${PGNAMESPACE}"
 

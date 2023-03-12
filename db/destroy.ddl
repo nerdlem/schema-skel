@@ -27,4 +27,7 @@ LANGUAGE plpgsql;
 DROP TABLE IF EXISTS :"nspace".schema_errata;
 DROP TABLE IF EXISTS :"nspace".example;
 
+DROP SCHEMA :"nspace" CASCADE;
+DROP SCHEMA :"apinspace" CASCADE;
+
 COMMIT;

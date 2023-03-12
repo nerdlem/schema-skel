@@ -6,6 +6,7 @@
 -- the environment.
 
 CREATE SCHEMA IF NOT EXISTS :"nspace";
+CREATE SCHEMA IF NOT EXISTS :"apinspace";
 SET search_path TO :"nspace", public;
 
 -- Frequent candidates include pgcrypto, pgjwt, etc.

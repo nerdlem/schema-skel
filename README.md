@@ -11,3 +11,9 @@ You might want to install the `pgtap` PostgreSQL extension and the `pg_prove` to
 See [this article](https://lem.click/post/handling-database-schema-changes/) for a detailed discussion on how to channel your database changes through deltas.
 
 The first versions of this skeleton were based in GNU Make. While this can still be used, I am gravitating towards a [script based deployment](https://lem.click/post/database-schema-shell/) for various reasons explained in the post.
+
+## Namespaces
+
+This schema sckeleton has been augmented so as to create two namespaces
+(`SCHEMA` in PostgreSQL parlance). This is meant to assist with the use of the
+[PostgREST](https://postgrest.org/) tool.

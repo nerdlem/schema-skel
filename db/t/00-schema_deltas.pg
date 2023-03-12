@@ -1,8 +1,11 @@
 BEGIN;
 
-SET search_path TO :'nspace', public;
+SET search_path TO :'nspace', :'apinspace', public;
 
-SELECT  plan(1);
+SELECT  plan(3);
+
+SELECT has_schema(:'nspace');
+SELECT has_schema(:'apinspace');
 
 SELECT has_table(:'nspace', 'schema_errata', 'schema_errata table is present');
 
