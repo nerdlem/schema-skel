@@ -7,11 +7,11 @@ echo -- Running database schema "${PGNAMESPACE}"
 
 for ddl in prerequisites.ddl \
            types.ddl \
-           types.ddl \
            functions.ddl \
            schema.ddl \
            schema-deltas.ddl \
            views.ddl \
+           roles.ddl \
            triggers.ddl \
            schema-deltas.sql \
            seed-data.sql \
