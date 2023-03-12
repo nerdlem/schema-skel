@@ -1,6 +1,6 @@
 BEGIN;
 
-SET search_path TO :"nspace", public;
+SET search_path TO :"nspace", :"apinspace", public;
 
 -- This is the basis for a schema delta. Feel free to remove this delta entirely
 -- or reuse as the basis for a real delta.

@@ -2,7 +2,7 @@
 -- want to use this script to add INDEXes, so that their definition lives closer
 -- to the actual tables.
 
-SET search_path TO :"nspace", public;
+SET search_path TO :"nspace", :"apinspace", public;
 
 CREATE TABLE :"nspace"._inh_audit (
     created_ts TIMESTAMP NOT NULL DEFAULT NOW(),

@@ -21,19 +21,35 @@ For any new applications you should plan on invoking the following scripts inste
 
 ## Namespace support
 
-The provided scripts create a single namespace to help keep the different components of a project logically separated. To set the desired namespace value you can use the environment variable `$PGNAMESPACE`. Note that this environment variable is folded into a `psql` variable `:nspace` that is expected to be used across the rest of the provisioning scripts.
+The provided scripts create two namespaces to help keep the different
+components of a project logically separated. One namespace is meant to keep
+the _private_ parts of your schema, while the other is meant to be used in
+combination with [PostgREST](https://postgrest.org/) for managing a separate
+REST API.
 
-The design assumes that there will be at least one namespace per application sharing the database.
+To set the desired namespace names you can use the environment variables
+`$PGNAMESPACE` and `$PGNAMESPACEAPI`. Note that these environment variables
+are folded into `psql` variables `:nspace` and `:apinspace` that can be used
+across the rest of the provisioning scripts.
 
-By default, the scripts attempt a conditional namespace creation, as depicted below.
+The design assumes that there will be at least one namespace per application
+sharing the database.
+
+By default, the scripts attempt a conditional namespace creation, as depicted
+below.
 
 ```sql
 CREATE SCHEMA IF NOT EXISTS :"nspace";
+CREATE SCHEMA IF NOT EXISTS :"apinspace";
 ```
 
-Both the `Makefile` and supplied shell scripts default to `skel` as the namespace.
+Both the `Makefile` and supplied shell scripts default to `skel` and `apiskel`
+as the namespaces.
 
-On destruction, the provided scripts do not attempt to destroy the namespace, as this simplifies overall database provisioning in some cases. Feel free to adjust to the specifics of your use case.
+Previous versions of this schema skeleton did not attempt to destroy the
+namespaces when `make destroy` was invoked. This has been reversed for the
+time being. You might want to revise the provided script if this behavior is
+problematic for your own setup.
 
 ## Configuring database coordinates
 
@@ -61,7 +77,7 @@ The example below shows what happens when you try to `make destroy` the producti
     ( cd db; PSQLRC=psqlrc-test make destroy )
     psql -f destroy.ddl
     psql:destroy.ddl:23: ERROR:  cannot destroy this database
-    HINT:  only database dev,qa can be destroyed
+    HINT:  only database dev,qa,lem can be destroyed
        ⋮
     psql:destroy.ddl:25: ERROR:  current transaction is aborted, commands ignored until end of transaction block
     psql:destroy.ddl:25: STATEMENT:  DROP TABLE IF EXISTS schema_errata;

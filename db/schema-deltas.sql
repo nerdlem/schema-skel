@@ -2,7 +2,7 @@
 -- schema deltas that can be considered as "applied" when the DDL scripts are
 -- used to provision a new database.
 
-SET search_path TO :"nspace", public;
+SET search_path TO :"nspace", :"apinspace", public;
 
 -- INSERT INTO :"nspace".schema_errata ( delta )
 -- VALUES ( '000000-example-schema-delta' );
