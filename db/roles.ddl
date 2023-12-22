@@ -3,3 +3,6 @@
 
 SET search_path TO :"nspace", :"apinspace", public;
 
+CREATE ROLE _pgrest_master LOGIN;
+CREATE ROLE _pgrest_user LOGIN;
+

@@ -10,3 +10,12 @@ CREATE TABLE :"nspace"._inh_audit (
 );
 
 COMMENT ON TABLE :"nspace"._inh_audit IS 'This table provides columns to track addition of individual rows. The timestamp and database username is recorded for each row.';
+
+CREATE TABLE :"nspace"._api_secrets (
+    id         SERIAL NOT NULL PRIMARY KEY,
+    secret     TEXT NOT NULL DEFAULT encode(gen_random_bytes(64), 'hex'),
+    during     TSRANGE NOT NULL DEFAULT tsrange(NOW()::timestamp, 'infinity', '[)'),
+    EXCLUDE USING GIST (during WITH &&)
+) INHERITS ( :"nspace"._inh_audit );
+
+INSERT INTO :"nspace"._api_secrets DEFAULT VALUES;

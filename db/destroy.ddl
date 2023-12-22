@@ -24,10 +24,15 @@ END;
 $$
 LANGUAGE plpgsql;
 
+DROP FUNCTION IF EXISTS :"nspace".reset_api_secret() CASCADE;
+
 DROP TABLE IF EXISTS :"nspace".schema_errata;
 DROP TABLE IF EXISTS :"nspace".example;
 
 DROP SCHEMA :"nspace" CASCADE;
 DROP SCHEMA :"apinspace" CASCADE;
+
+DROP ROLE IF EXISTS _pgrest_master;
+DROP ROLE IF EXISTS _pgrest_user;
 
 COMMIT;

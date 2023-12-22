@@ -51,6 +51,11 @@ namespaces when `make destroy` was invoked. This has been reversed for the
 time being. You might want to revise the provided script if this behavior is
 problematic for your own setup.
 
+## Support for PostgREST
+
+Roles, users and a few tables are provided to assist with deployments that
+plan to use PostgREST for API provisioning.
+
 ## Configuring database coordinates
 
 Scripts are executed via the `psql` tool, so any of the methods supported by that tool work for deployment. See the [psql Environment section](https://www.postgresql.org/docs/9.6/static/app-psql.html#APP-PSQL-ENVIRONMENT) for more information on the variables to use to point your deployment as desired. Specially the `PGDATABASE`, `PGHOST`, `PGPORT` and `PGUSER` variables.

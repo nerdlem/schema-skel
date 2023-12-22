@@ -12,6 +12,7 @@ for ddl in prerequisites.ddl \
            schema-deltas.ddl \
            views.ddl \
            roles.ddl \
+           post-functions.ddl \
            triggers.ddl \
            schema-deltas.sql \
            seed-data.sql \
