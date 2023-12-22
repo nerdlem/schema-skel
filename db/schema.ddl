@@ -19,3 +19,15 @@ CREATE TABLE :"nspace"._api_secrets (
 ) INHERITS ( :"nspace"._inh_audit );
 
 INSERT INTO :"nspace"._api_secrets DEFAULT VALUES;
+
+-- The below exclusion constraint requires the btree_gist extension that
+-- provides the required operator class for the = operator with TEXT
+
+CREATE TABLE :"nspace"._api_users (
+    id         SERIAL NOT NULL PRIMARY KEY,
+    username   TEXT NOT NULL,
+    password   TEXT NOT NULL DEFAULT crypt(random_password(32), gen_salt('bf', 8)),
+    during     TSRANGE NOT NULL DEFAULT tsrange(NOW()::timestamp, 'infinity', '[)'),
+    EXCLUDE USING GIST (username WITH =, during WITH &&)
+) INHERITS ( :"nspace"._inh_audit );
+

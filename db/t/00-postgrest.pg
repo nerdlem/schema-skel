@@ -1,0 +1,61 @@
+BEGIN;
+
+SET search_path TO :'nspace', :'apinspace', public;
+
+SELECT plan(13);
+
+SELECT has_role('_pgrest_master');
+SELECT has_role('_pgrest_user');
+
+SELECT has_user('api_master');
+SELECT has_user('api_user');
+
+SELECT has_table (:'nspace', '_api_secrets', '_api_secrets table');
+SELECT has_table (:'nspace', '_api_users', '_api_users table');
+SELECT has_view  (:'nspace', 'current_api_secret', 'current_api_secret table');
+
+SELECT has_view  (:'apinspace', 'ping', 'ping view');
+
+SET ROLE _pgrest_master;
+
+SET search_path TO :'nspace', public;
+
+SELECT throws_matching (
+    $$ SELECT TRUE FROM _api_secrets $$,
+    'permission denied',
+    '_pgrest_master cannot access _api_secrets table'
+);
+
+SELECT lives_ok (
+    $$ SELECT TRUE FROM _api_users $$,
+    '_pgrest_master can access _api_users table'
+);
+
+RESET ROLE;
+
+SET ROLE _pgrest_user;
+
+SET search_path TO :'nspace', public;
+
+SELECT throws_matching (
+    $$ SELECT TRUE FROM _api_secrets $$,
+    'does not exist',
+    '_pgrest_user cannot access _api_secrets table'
+);
+
+SELECT throws_matching (
+    $$ SELECT TRUE FROM _api_users $$,
+    'does not exist',
+    '_pgrest_user cannot access _api_users table'
+);
+
+SET search_path TO :'apinspace', public;
+
+SELECT lives_ok (
+    $$ SELECT TRUE FROM ping $$,
+    '_pgrest_user can access ping view'
+);
+
+RESET ROLE;
+
+ROLLBACK;
