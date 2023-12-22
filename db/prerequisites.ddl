@@ -7,19 +7,29 @@
 
 CREATE SCHEMA IF NOT EXISTS :"nspace";
 CREATE SCHEMA IF NOT EXISTS :"apinspace";
+CREATE SCHEMA IF NOT EXISTS :"cfgnspace";
+
+COMMENT ON SCHEMA :"apinspace" IS
+$$A skeleton PostgREST API
+
+This is a generic API description for your API. You might want to change this to better reflect what this API is about.
+$$;
+
+
 SET search_path TO :"nspace", public;
 
 -- Frequent candidates include pgcrypto, pgjwt, etc.
 
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
--- CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us;
--- CREATE EXTENSION IF NOT EXISTS address_standardizer;
--- CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;
--- CREATE EXTENSION IF NOT EXISTS hstore;
--- CREATE EXTENSION IF NOT EXISTS ip4r;
--- CREATE EXTENSION IF NOT EXISTS pg_hint_plan;
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
--- CREATE EXTENSION IF NOT EXISTS pgjwt;
-CREATE EXTENSION IF NOT EXISTS btree_gist;
-CREATE EXTENSION IF NOT EXISTS pgtap;
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS address_standardizer_data_us WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS address_standardizer WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS fuzzystrmatch WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS hstore WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS ip4r WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS pg_hint_plan WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+-- CREATE EXTENSION IF NOT EXISTS pgjwt WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pgjwt WITH SCHEMA public;
 

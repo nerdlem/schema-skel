@@ -1,5 +1,4 @@
 PGNAMESPACE ?= skel
-PGAPINAMESPACE ?= apiskel
 
 export PGNAMESPACE
 

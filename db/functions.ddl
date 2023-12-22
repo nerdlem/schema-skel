@@ -1,7 +1,7 @@
 -- Use this script to add your database functions on which other objects
 -- depend for provisioning.
 
-SET search_path TO :"nspace", :"apinspace", public;
+SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
 CREATE OR REPLACE FUNCTION :"nspace".random_password(n INTEGER DEFAULT 32) RETURNS TEXT AS
 $$

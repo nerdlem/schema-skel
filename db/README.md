@@ -28,8 +28,8 @@ combination with [PostgREST](https://postgrest.org/) for managing a separate
 REST API.
 
 To set the desired namespace names you can use the environment variables
-`$PGNAMESPACE` and `$PGNAMESPACEAPI`. Note that these environment variables
-are folded into `psql` variables `:nspace` and `:apinspace` that can be used
+`$PGNAMESPACE`. `$PGAPINAMESPACE` and `$PGCFGNAMESPACE`. Note that these environment variables
+are folded into `psql` variables `:nspace`, `:apinspace` and :`cfgnspace` that can be used
 across the rest of the provisioning scripts.
 
 The design assumes that there will be at least one namespace per application
@@ -41,6 +41,7 @@ below.
 ```sql
 CREATE SCHEMA IF NOT EXISTS :"nspace";
 CREATE SCHEMA IF NOT EXISTS :"apinspace";
+CREATE SCHEMA IF NOT EXISTS :"cfgnspace";
 ```
 
 Both the `Makefile` and supplied shell scripts default to `skel` and `apiskel`
@@ -54,7 +55,11 @@ problematic for your own setup.
 ## Support for PostgREST
 
 Roles, users and a few tables are provided to assist with deployments that
-plan to use PostgREST for API provisioning.
+plan to use PostgREST for API provisioning. Base functions to control
+configuration, store JWT secrets and authenticate users are provided.
+
+Also, a simple `ping` view suitable for providing a method to check the
+database availability is present as well.
 
 ## Configuring database coordinates
 

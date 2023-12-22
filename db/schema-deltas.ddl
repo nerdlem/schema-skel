@@ -1,7 +1,7 @@
 -- This script is responsible for creating the schema_errata database table, to
 -- keep track of the deltas that have been applied to this database schema.
 
-SET search_path TO :"nspace", :"apinspace", public;
+SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
 CREATE TABLE :"nspace".schema_errata (
   delta TEXT NOT NULL PRIMARY KEY

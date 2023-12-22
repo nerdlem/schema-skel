@@ -1,14 +1,23 @@
 BEGIN;
 
-SET search_path TO :'nspace', :'apinspace', public;
+SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
-SELECT plan(13);
+SELECT plan(24);
 
-SELECT has_role('_pgrest_master');
+SELECT random_password(32) AS longpass;
+\gset
+
+SELECT has_extension('pgjwt');
+
+SELECT has_role('_pgrest_authenticator');
 SELECT has_role('_pgrest_user');
+SELECT has_role('_pgrest_anon');
 
 SELECT has_user('api_master');
 SELECT has_user('api_user');
+
+SELECT has_function(:'nspace', 'postgrest_pre_config', 'has postgrest_pre_config function' );
+SELECT has_function (:'nspace', 'postgrest_post_auth', 'has postgrest_post_auth function');
 
 SELECT has_table (:'nspace', '_api_secrets', '_api_secrets table');
 SELECT has_table (:'nspace', '_api_users', '_api_users table');
@@ -16,19 +25,53 @@ SELECT has_view  (:'nspace', 'current_api_secret', 'current_api_secret table');
 
 SELECT has_view  (:'apinspace', 'ping', 'ping view');
 
-SET ROLE _pgrest_master;
+SELECT has_function(:'nspace', 'reset_api_secret', 'has reset_api_secret function');
+
+SELECT lives_ok(
+    $$ SELECT reset_api_secret() $$,
+    'can reset API secrets'
+);
+
+SELECT throws_matching (
+    $$ INSERT INTO _api_users ( username, password ) VALUES ( 'testshort', 'short' ) $$,
+    'password too short',
+    'short password was rejected'
+);
+
+SELECT lives_ok (
+    $$ INSERT INTO _api_users ( username, password ) VALUES ( 'test', $$ || quote_literal(:'longpass') || ')',
+    'long password was accepted'
+);
+
+SET ROLE _pgrest_authenticator;
 
 SET search_path TO :'nspace', public;
 
 SELECT throws_matching (
     $$ SELECT TRUE FROM _api_secrets $$,
     'permission denied',
-    '_pgrest_master cannot access _api_secrets table'
+    '_pgrest_authenticator cannot access _api_secrets table'
 );
 
 SELECT lives_ok (
     $$ SELECT TRUE FROM _api_users $$,
-    '_pgrest_master can access _api_users table'
+    '_pgrest_authenticator can access _api_users table'
+);
+
+SELECT lives_ok (
+    'SELECT ' || quote_ident(:'nspace') || '.postgrest_pre_config()',
+    'can initialize postgrest request environment'
+);
+
+SELECT throws_matching (
+    $$ SELECT "$$ || :'cfgnspace' || $$" .postgrest_login( 'test', 'badpass' ) $$,
+    'invalid credentials',
+    'bad password authentication throws'
+);
+
+SELECT lives_ok (
+    $$ SELECT $$ || quote_ident(:'cfgnspace') || $$.postgrest_login( 'test', $$ || quote_literal(:'longpass') || ')',
+    'authentication with good password'
 );
 
 RESET ROLE;
