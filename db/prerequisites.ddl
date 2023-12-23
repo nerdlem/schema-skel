@@ -12,7 +12,7 @@ CREATE SCHEMA IF NOT EXISTS :"cfgnspace";
 COMMENT ON SCHEMA :"apinspace" IS
 $$A skeleton PostgREST API
 
-This is a generic API description for your API. You might want to change this to better reflect what this API is about.
+This is a generic description for your API. You might want to change this to better reflect what this API is about.
 $$;
 
 

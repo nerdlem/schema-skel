@@ -64,13 +64,13 @@ SELECT lives_ok (
 );
 
 SELECT throws_matching (
-    $$ SELECT "$$ || :'cfgnspace' || $$" .postgrest_login( 'test', 'badpass' ) $$,
+    $$ SELECT "$$ || :'apinspace' || $$" .login( 'test', 'badpass' ) $$,
     'invalid credentials',
     'bad password authentication throws'
 );
 
 SELECT lives_ok (
-    $$ SELECT $$ || quote_ident(:'cfgnspace') || $$.postgrest_login( 'test', $$ || quote_literal(:'longpass') || ')',
+    $$ SELECT $$ || quote_ident(:'apinspace') || $$.login( 'test', $$ || quote_literal(:'longpass') || ')',
     'authentication with good password'
 );
 
@@ -82,13 +82,13 @@ SET search_path TO :'nspace', public;
 
 SELECT throws_matching (
     $$ SELECT TRUE FROM _api_secrets $$,
-    'does not exist',
+    'does not exist|permission denied',
     '_pgrest_user cannot access _api_secrets table'
 );
 
 SELECT throws_matching (
     $$ SELECT TRUE FROM _api_users $$,
-    'does not exist',
+    'does not exist|permission denied',
     '_pgrest_user cannot access _api_users table'
 );
 

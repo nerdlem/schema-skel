@@ -23,8 +23,7 @@ BEGIN
 END;
 $$
 LANGUAGE plpgsql;
-
-DROP FUNCTION IF EXISTS :"cfgnspace".postgrest_login(TEXT, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS :"apinspace".login(TEXT, TEXT) CASCADE;
 DROP FUNCTION IF EXISTS :"cfgnspace".random_password(INT) CASCADE;
 DROP FUNCTION IF EXISTS :"cfgnspace".reset_api_secret() CASCADE;
 DROP FUNCTION IF EXISTS :"nspace".trg_crypt_password() CASCADE;

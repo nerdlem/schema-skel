@@ -18,7 +18,7 @@ BEGIN
               ERRCODE = 'invalid_parameter_value';
     END IF;
 
-    NEW.password = crypt(NEW.password, gen_salt('bf', 8));
+    NEW.password = public.crypt(NEW.password, public.gen_salt('bf', 8));
     RETURN NEW;
 END;
 $FUNC$

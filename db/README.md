@@ -21,9 +21,9 @@ For any new applications you should plan on invoking the following scripts inste
 
 ## Namespace support
 
-The provided scripts create two namespaces to help keep the different
+The provided scripts create multiple namespaces to help keep the different
 components of a project logically separated. One namespace is meant to keep
-the _private_ parts of your schema, while the other is meant to be used in
+the _private_ parts of your schema, while the others are meant to be used in
 combination with [PostgREST](https://postgrest.org/) for managing a separate
 REST API.
 
@@ -44,8 +44,8 @@ CREATE SCHEMA IF NOT EXISTS :"apinspace";
 CREATE SCHEMA IF NOT EXISTS :"cfgnspace";
 ```
 
-Both the `Makefile` and supplied shell scripts default to `skel` and `apiskel`
-as the namespaces.
+Both the `Makefile` and supplied shell scripts default to `skel`, `apiskel`
+and `cfgskel` as the namespaces.
 
 Previous versions of this schema skeleton did not attempt to destroy the
 namespaces when `make destroy` was invoked. This has been reversed for the
@@ -60,6 +60,121 @@ configuration, store JWT secrets and authenticate users are provided.
 
 Also, a simple `ping` view suitable for providing a method to check the
 database availability is present as well.
+
+The file `etc/postgrest.conf` included in this repo provides for a simple setup
+that should be suitable for your own development environment. Me sure you
+revise this file, specially when you customize your configuration.
+
+> For production deployments, you should consider using nginx as a reverse proxy
+in front of your PostgREST instance, providing TLS and rate limiting services
+as needed.
+
+### Authentication and secrets
+
+The database schema defines the following tables, used to manage JWT secrets
+securely as well as for per-user authentication.
+
+```mermaid
+---
+title: JWT & Authentication
+---
+erDiagram
+
+    "skel.current_api_secret" ||--|| "skel._api_secrets" : "is current"
+    "skel.current_api_secret" {
+        text secret
+        integer token_duration
+    }
+    "skel._api_secrets" {
+        text secret
+        integer token_duration
+        tsrange during
+    }
+    "skel._api_users" {
+        text username
+        text dbrole
+        regexp authorized_re
+        bcrypt  password
+        tsrange during
+    }
+```
+
+The table below provides a brief summary of the purpose of each column.
+
+| Table | Column | Notes |
+| :---- | :----- | :---- |
+| `_api_secrets` | `secret`         | Randomly generated secret |
+| `_api_secrets` | `token_duration` | Lifetime of generated tokens, in seconds |
+| `_api_secrets` | `during`         | Time interval during which this secret will be valid |
+| `_api_users`   | `username`       | Used for per-user authentication |
+| `_api_users`   | `dbrole`         | Associated database role for the successfully authenticated user |
+| `_api_users`   | `authorized_re`  | For authorization, this regular expression _must_ match the request path |
+| `_api_users`   | `password`       | The hashed password for the user |
+| `_api_users`   | `during`         | Time interval during which this credential is valid |
+
+JWT secrets can be easily rotated using:
+
+```sql
+SELECT skel.reset_api_secret();
+```
+
+The current JWT secret are available as follows:
+
+```sql
+SELECT * FROM skel.current_api_secret;
+```
+
+### Previewing and interacting with the API
+
+Follow the [instructions from
+redocly.com](https://redocly.com/docs/redoc/deployment/docker/) to launch
+redoc in a Docker container and point it to your environment, which in my case
+is at `localhost:3000`
+
+```bash
+docker run -p 8080:80 -e SPEC_URL=http://10.54.32.10:3000/ redocly/redoc
+```
+
+Pointing your browser to http://localhost:8080 will present a pretty rendering
+of your API.
+
+For simple testing, you can create a user in your local database:
+
+```sql
+INSERT INTO _api_users ( username, password ) VALUES ( 'lem', '1234567890' );
+```
+
+And then , you can easily check the authentication:
+
+```bash
+curl 'http://localhost:3000/rpc/login?username=lem;password=1234567890'
+{"token":"eyJhbGciOi⋯Mz7w"}
+```
+
+The token can then be used to access other functions, in this case, the
+`/ping` endpoint. Simply use the token in your `Authorization` header, as
+shown below.
+
+```bash
+curl -X 'GET' \
+  'http://0.0.0.0:3000/ping' \
+  -H 'accept: application/json' \
+  -H 'Range-Unit: items' \
+  -H 'Authorization: Bearer eyJhbGciOi⋯Mz7w'
+```
+
+The response should be as follows:
+
+```json
+[
+  {
+    "alive": true,
+    "message": "Database connection is established",
+    "ts": "2023-12-23T13:53:22.206356",
+    "username": "lem"
+  }
+]
+```
 
 ## Configuring database coordinates
 
