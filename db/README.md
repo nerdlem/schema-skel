@@ -6,14 +6,6 @@ Of course, you're free to adapt this to your own style. In some cases a single `
 
 In general terms, these `.ddl` files are meant to deploy your database schema to a plain, blank database.
 
-## Dependencies and required extensions
-
-Support for PostgREST introduces a dependency on
-[pgjwt](https://github.com/michelp/pgjwt), btree_gist and pgcrypto. Please
-ensure these extensions are availablein your environment.
-
-Testing requires the pgtap extension as well as the `pg_prove` command line utility.
-
 ## Makefile provisioning and AWS Lambda
 
 At the time of this writing, the AWS Lambda environment imposes a series of security restrictions on the workloads it executes. One such restriction involves the use of _tracing syscalls_. GNU Make uses some of these calls internally to track the status of its subprocesses, which causes issues when attempting deployments via λ. These examples are migrating towards a shell-script based deployment strategy to simplify deployments in these types of environments.
