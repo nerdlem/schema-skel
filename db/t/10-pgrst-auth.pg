@@ -1,0 +1,79 @@
+BEGIN;
+
+SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
+
+SELECT plan(9);
+
+SELECT random_password(32) AS testpass;
+\gset
+
+SELECT lives_ok (
+    $$ INSERT INTO _api_users ( username, password , authorized_re)
+       VALUES
+       ( 'test', $$ || quote_literal(:'testpass') || $$, '^GET:/foo' )$$,
+    'test credentials added'
+);
+
+SET ROLE _pgrest_authenticator;
+
+SET search_path TO :'nspace', public;
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/test/endpoint', true),
+              set_config('request.method', 'POST', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true)
+    $$,
+    'mock unauthorized request parameters for method and endpoint'
+);
+
+SELECT lives_ok(
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_pre_config()
+    $$,
+    'mock request environment'
+);
+
+SELECT throws_matching (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'not authorized',
+    'unauthorized request for method and endpoint should throw an exception'
+);
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/test/endpoint', true),
+              set_config('request.method', 'GET', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true)
+    $$,
+    'mock unauthorized request parameters for endpoint'
+);
+
+SELECT lives_ok(
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_pre_config()
+    $$,
+    'mock request environment'
+);
+
+SELECT throws_matching (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'not authorized',
+    'unauthorized request for endpoint should throw an exception'
+);
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/foo', true),
+              set_config('request.method', 'GET', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true)
+    $$,
+    'mock authorized request parameters'
+);
+
+SELECT lives_ok (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'authorized should be allowed to proceed'
+);
+
+RESET ROLE;
+
+ROLLBACK;

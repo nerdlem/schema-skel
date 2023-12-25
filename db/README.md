@@ -108,7 +108,7 @@ The table below provides a brief summary of the purpose of each column.
 | `_api_secrets` | `during`         | Time interval during which this secret will be valid |
 | `_api_users`   | `username`       | Used for per-user authentication |
 | `_api_users`   | `dbrole`         | Associated database role for the successfully authenticated user |
-| `_api_users`   | `authorized_re`  | For authorization, this regular expression _must_ match the request path |
+| `_api_users`   | `authorized_re`  | For authorization, this regular expression _must_ match the method and request path, see below |
 | `_api_users`   | `password`       | The hashed password for the user |
 | `_api_users`   | `during`         | Time interval during which this credential is valid |
 
@@ -131,6 +131,29 @@ The current JWT secret is available as follows:
 ```sql
 SELECT * FROM skel.current_api_secret;
 ```
+
+### Authorization
+
+The authorization scheme managed by `_api_users.authorized_re` implements a
+simplistic approach. For each request, the signature `<METHOD>:<PATH>` is
+composed and matched against the regular expression on
+`_api_users.authorized_re` for the corresponding user.
+
+If the regular expression fails to match, the request is rejected through an
+exception that gets marshaled to an error response by PostgREST. This
+mechanism is a _complement_ to the role-based access controls that can be
+implemented by Postgres.
+
+By setting a suitable regular expression, a variety of access restrictions can
+be deployed. A few examples include:
+
+| Regular Expression    | Notes |
+| :-------------------- | :---- |
+| `^GET:`               | Read-only access |
+| `[^\w]+:/auhtorized/` | Provide access to only a subset of the operations |
+
+Using lookahead and lookbehind assertions, much richer access restrictrions
+can be deployed.
 
 ### Previewing and interacting with the API
 

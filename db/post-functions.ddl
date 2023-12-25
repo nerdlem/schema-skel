@@ -76,7 +76,9 @@ SECURITY DEFINER;
 CREATE OR REPLACE FUNCTION :"nspace".postgrest_post_auth() RETURNS VOID AS
 $$
 DECLARE
-  request_path TEXT = current_setting('request.path', true);
+  request_signature TEXT = FORMAT( '%s:%s',
+                                   current_setting('request.method', true),
+                                   current_setting('request.path', true) );
   jwt_username TEXT = current_setting('request.jwt.claims')::json->>'username';
 BEGIN
 
@@ -86,13 +88,13 @@ BEGIN
     FROM _api_users u
     WHERE u.username = jwt_username
       AND u.during @> NOW()::TIMESTAMP
-      AND request_path ~ u.authorized_re
+      AND request_signature ~ u.authorized_re
     LIMIT 1;
 
     IF NOT FOUND THEN
       RAISE invalid_password
       USING MESSAGE = 'not authorized',
-            HINT = FORMAT('user %s is not authorized to execute request %s', jwt_username, request_path);
+            HINT = FORMAT('user %s is not authorized to execute request %s', jwt_username, request_signature);
 
     END IF;
 
