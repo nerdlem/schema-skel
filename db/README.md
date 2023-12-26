@@ -110,7 +110,7 @@ The table below provides a brief summary of the purpose of each column.
 | `_api_users`   | `username`       | Used for per-user authentication |
 | `_api_users`   | `dbrole`         | Associated database role for the successfully authenticated user |
 | `_api_users`   | `authorized_re`  | For authorization, this regular expression _must_ match the method and request path, see below |
-| `_api_users`   | `authorized_subnets`  | For authorization, an optionmal list of CIDR subnets restricting the authorized request origins, see below |
+| `_api_users`   | `authorized_subnets`  | For authorization, an optional list of CIDR subnets restricting the authorized request origins, see below |
 | `_api_users`   | `password`       | The hashed password for the user |
 | `_api_users`   | `during`         | Time interval during which this credential is valid |
 
