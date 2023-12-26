@@ -2,7 +2,7 @@ BEGIN;
 
 SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
-SELECT plan(9);
+SELECT plan(16);
 
 SELECT random_password(32) AS testpass;
 \gset
@@ -75,5 +75,65 @@ SELECT lives_ok (
 );
 
 RESET ROLE;
+
+SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
+
+SELECT lives_ok (
+    $$ UPDATE _api_users
+       SET authorized_subnets = '{127/8}'::CIDR[]
+       WHERE username = 'test';
+    $$,
+    'Add IP-based whitelisting restriction'
+);
+
+SET ROLE _pgrest_authenticator;
+
+SET search_path TO :'nspace', public;
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/foo', true),
+              set_config('request.method', 'GET', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true)
+    $$,
+    'mock authorized request parameters, no IP information'
+);
+
+SELECT throws_matching (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'not authorized',
+    'request with no IP source information should throw an exception'
+);
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/foo', true),
+              set_config('request.method', 'GET', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true),
+              set_config('request.headers', '{"x-real-ip": "10.0.0.10"}', true)
+    $$,
+    'mock authorized request parameters, unauthorized IP information'
+);
+
+SELECT throws_matching (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'not authorized',
+    'request from unauthorized IP should throw an exception'
+);
+
+SELECT lives_ok(
+    $$ SELECT set_config('request.path', '/foo', true),
+              set_config('request.method', 'GET', true),
+              set_config('request.jwt.claims', '{"username": "test"}', true),
+              set_config('request.headers', '{"x-real-ip": "127.0.0.2"}', true)
+    $$,
+    'mock request parameters, authorized IP information'
+);
+
+SELECT lives_ok (
+    $$ SELECT $$ || quote_ident(:'nspace') || $$.postgrest_post_auth()
+    $$,
+    'authorized request from a recognized source IP should be allowed to proceed'
+);
 
 ROLLBACK;

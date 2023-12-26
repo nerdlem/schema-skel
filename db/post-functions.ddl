@@ -79,7 +79,8 @@ DECLARE
   request_signature TEXT = FORMAT( '%s:%s',
                                    current_setting('request.method', true),
                                    current_setting('request.path', true) );
-  jwt_username TEXT = current_setting('request.jwt.claims')::json->>'username';
+  source_ip INET = (current_setting('request.headers', true)::jsonb->>'x-real-ip')::INET;
+  jwt_username TEXT = current_setting('request.jwt.claims')::jsonb->>'username';
 BEGIN
 
     IF jwt_username IS NULL THEN RETURN; END IF;
@@ -89,12 +90,22 @@ BEGIN
     WHERE u.username = jwt_username
       AND u.during @> NOW()::TIMESTAMP
       AND request_signature ~ u.authorized_re
+      AND ( u.authorized_subnets IS NULL
+            OR EXISTS (
+              SELECT TRUE
+              FROM ( SELECT sn
+                     FROM unnest( u.authorized_subnets ) sn
+                     WHERE sn.sn >>= source_ip
+              ) u
+            )
+          )
     LIMIT 1;
 
     IF NOT FOUND THEN
       RAISE invalid_password
       USING MESSAGE = 'not authorized',
-            HINT = FORMAT('user %s is not authorized to execute request %s', jwt_username, request_signature);
+            HINT = FORMAT( 'user %s is not authorized to execute request %s from IP %s',
+                           jwt_username, request_signature, source_ip );
 
     END IF;
 

@@ -94,6 +94,7 @@ erDiagram
         text username
         text dbrole
         regexp authorized_re
+        cidr[] authorized_subnets
         bcrypt  password
         tsrange during
     }
@@ -109,6 +110,7 @@ The table below provides a brief summary of the purpose of each column.
 | `_api_users`   | `username`       | Used for per-user authentication |
 | `_api_users`   | `dbrole`         | Associated database role for the successfully authenticated user |
 | `_api_users`   | `authorized_re`  | For authorization, this regular expression _must_ match the method and request path, see below |
+| `_api_users`   | `authorized_subnets`  | For authorization, an optionmal list of CIDR subnets restricting the authorized request origins, see below |
 | `_api_users`   | `password`       | The hashed password for the user |
 | `_api_users`   | `during`         | Time interval during which this credential is valid |
 
@@ -154,6 +156,22 @@ be deployed. A few examples include:
 
 Using lookahead and lookbehind assertions, much richer access restrictrions
 can be deployed.
+
+An additional means of authorization lies in the source IP of a given request.
+When `_api_users.authorized_subnets` is populated with an array if `CIDR`
+subnets and the upstream proxy provides the `X-Real-IP` header as with the
+[ngx_http_realip_module](https://nginx.org/en/docs/http/ngx_http_realip_module.html)
+Nginx module, requests will only be accepted when comming from an IP address
+from within one of the covered subnets.
+
+The following Nginx directives work well when setting up the reverse proxy:
+
+```
+proxy_set_header        X-Forwarded-For         $proxy_add_x_forwarded_for;
+proxy_set_header        X-Real-IP               $remote_addr;
+proxy_set_header        Host                    $http_host;
+proxy_set_header        Connection              "";
+```
 
 ### Previewing and interacting with the API
 
