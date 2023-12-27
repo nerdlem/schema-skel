@@ -152,7 +152,7 @@ be deployed. A few examples include:
 | Regular Expression    | Notes |
 | :-------------------- | :---- |
 | `^GET:`               | Read-only access |
-| `[^\w]+:/auhtorized/` | Provide access to only a subset of the operations |
+| `^[\w]+:/auhtorized/` | Provide access to only a subset of the operations |
 
 Using lookahead and lookbehind assertions, much richer access restrictrions
 can be deployed.
