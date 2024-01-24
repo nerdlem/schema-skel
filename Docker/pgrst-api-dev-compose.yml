@@ -1,0 +1,35 @@
+version: '3.8'
+
+# This spec provides 
+
+services:
+  pgrst:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: "postgresql://api_master:ChangeAPIMasterPassword@host.docker.internal:5432/${PGDATABASE}"
+      PGRST_DB_CONFIG: "true"
+      PGRST_DB_ANON_ROLE: "api_anon"
+      PGRST_DB_CHANNEL: "pgrst"
+      PGRST_DB_CHANNEL_ENABLED: "true"
+      PGRST_DB_PRE_CONFIG: "${PGNAMESPACE}.postgrest_pre_config"
+      PGRST_DB_EXTRA_SEARCH_PATH: "public"
+      PGRST_DB_POOL: "4"
+      PGRST_DB_PREPARED_STATEMENTS: "true"
+      PGRST_DB_TX_END: "commit-allow-override"
+      PGRST_JWT_ROLE_CLAIM_KEY: ".role"
+      PGRST_LOG_LEVEL: "info"
+      PGRST_OPENAPI_MODE: "follow-privileges"
+      PGRST_SERVER_CORS_ALLOWED_ORIGINS: "http://localhost:8080"
+      PGRST_SERVER_PORT: "3000"
+      PGRST_SERVER_TIMING_ENABLED: "true"
+
+  redoc:
+    image: redocly/redoc
+    ports:
+      - "8080:80"
+    environment:
+      SPEC_URL: "http://localhost:3000/"
+
+
