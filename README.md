@@ -37,3 +37,8 @@ This schema sckeleton has been augmented so as to create two namespaces
 (`SCHEMA` in PostgreSQL parlance). This is meant to assist with the use of the
 [PostgREST](https://postgrest.org/) tool.
 
+## Docker support
+
+This distribution includes a simplistic Docker-based deployment helper that
+will launch PostgREST and Redoc, pointing at your local database. This should
+help get you started for your own deployments.
