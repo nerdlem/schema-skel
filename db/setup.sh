@@ -13,3 +13,4 @@ export PSQL_CMD=${PSQL_CMD:=${PSQL} --set=nspace="${PGNAMESPACE}" --set=apinspac
 
 export PGPROVE=${PGPROVE:=$(which pg_prove)}
 export PGPROVE_CMD=${PGPROVE_CMD:=${PGPROVE}  --set=nspace="${PGNAMESPACE}" --set=apinspace="${PGAPINAMESPACE}" --set=cfgnspace="${PGCFGNAMESPACE}"}
+export PGPROVE_TARGET=${PGPROVE_TARGET:=./t}

@@ -15,7 +15,7 @@ fi
 # Since pg_prove invokes psql under the hood, the environment variables under
 # the hood will work transparently, so no need to prime with command line flags.
 
-${PGPROVE_CMD} ${PGPROVE_OPTS} --recurse ./t
+${PGPROVE_CMD} ${PGPROVE_OPTS} --recurse ${PGPROVE_TARGET}
 
 exit 0
 
