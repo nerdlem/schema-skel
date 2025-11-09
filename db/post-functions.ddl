@@ -68,15 +68,14 @@ SET search_path TO :"nspace", public
 SECURITY DEFINER;
 
 DO $DO$
-DECLARE f TEXT;
 BEGIN
-    EXECUTE FORMAT('-- Dynamically generated statement
+    FORMAT('-- Dynamically generated statement
     CREATE OR REPLACE FUNCTION "%1$s".postgrest_pre_config() RETURNS VOID AS
     $$
       SELECT
       set_config(''pgrst.jwt_secret'', ( SELECT secret FROM current_api_secret LIMIT 1), true)
     , set_config(''pgrst.db_schemas'', ''%2$s'', true)
-    , set_config(''pgrst.db_pre_request'', ''"%1$s".postgrest_post_auth'', true)
+    , set_config(''pgrst.db_pre_request'', ''%1$s.postgrest_post_auth'', true)
     , set_config(''pgrst.openapi_security_active'', ''true'', true);
     $$
     LANGUAGE SQL
