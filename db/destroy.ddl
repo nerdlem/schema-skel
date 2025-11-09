@@ -9,6 +9,11 @@ SET SESSION app.ephemeral_dbs = 'dev,qa,lem';
 
 BEGIN;
 
+SELECT set_config('app.temp.nspace', :'nspace', false) AS nspace,
+       set_config('app.temp.apinspace', :'apinspace', false) AS apinspace,
+       set_config('app.temp.cfgnspace', :'cfgnspace', false) AS cfgnspace
+       INTO TEMPORARY TABLE __temp_params;
+
 DO $$
 BEGIN
   PERFORM TRUE
@@ -35,40 +40,113 @@ DROP TABLE IF EXISTS :"nspace".example;
 
 DROP TABLE IF EXISTS :"nspace"._inh_audit CASCADE;
 
-REVOKE ALL ON SCHEMA :"nspace" FROM api_anon, api_master, api_user;
-REVOKE ALL ON SCHEMA :"apinspace" FROM api_anon, api_master, api_user;
-REVOKE ALL ON SCHEMA :"cfgnspace" FROM api_anon, api_master, api_user;
-REVOKE ALL ON SCHEMA public FROM api_anon, api_master, api_user;
+DO $revokes$
+DECLARE
+    api_roles text[] := ARRAY['api_anon', 'api_master', 'api_user'];
+    pgrest_roles text[] := ARRAY['_pgrest_anon', '_pgrest_authenticator', '_pgrest_user'];
+    schemas text[] := ARRAY[current_setting('app.temp.nspace'), 
+                            current_setting('app.temp.apinspace'),
+                            current_setting('app.temp.cfgnspace'), 
+                            'public'];
+    role text;
+    schema text;
+BEGIN
+    -- Revoke schema privileges
+    FOREACH schema IN ARRAY schemas LOOP
+        -- API roles
+        FOREACH role IN ARRAY api_roles LOOP
+            BEGIN
+                EXECUTE format('REVOKE ALL ON SCHEMA %I FROM %I', schema, role);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Error revoking schema privileges from API role: schema=%, role=%, detail=%', schema, role, SQLERRM;
+            END;
+        END LOOP;
+        
+        -- PGREST roles - more extensive privileges
+        FOREACH role IN ARRAY pgrest_roles LOOP
+            BEGIN
+                -- Schema access
+                EXECUTE format('REVOKE ALL ON SCHEMA %I FROM %I', schema, role);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Error revoking schema ALL privileges: schema=%, role=%, detail=%', schema, role, SQLERRM;
+            END;
 
-DROP ROLE IF EXISTS api_anon;
-DROP ROLE IF EXISTS api_master;
-DROP ROLE IF EXISTS api_user;
+            BEGIN
+                EXECUTE format('REVOKE USAGE ON SCHEMA %I FROM %I', schema, role);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Error revoking schema USAGE privileges: schema=%, role=%, detail=%', schema, role, SQLERRM;
+            END;
 
-REVOKE ALL ON SCHEMA :"nspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON SCHEMA :"apinspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON SCHEMA :"cfgnspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON SCHEMA public FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA :"nspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user; 
-REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA :"apinspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;  
-REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA :"cfgnspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON ALL TABLES IN SCHEMA :"nspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON ALL TABLES IN SCHEMA :"apinspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON ALL TABLES IN SCHEMA :"cfgnspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
+            BEGIN
+                -- Table privileges
+                EXECUTE format('REVOKE ALL ON ALL TABLES IN SCHEMA %I FROM %I', schema, role);
+            EXCEPTION WHEN OTHERS THEN
+                RAISE NOTICE 'Error revoking table privileges: schema=%, role=%, detail=%', schema, role, SQLERRM;
+            END;
+            
+            -- Function privileges for non-public schemas
+            IF schema != 'public' THEN
+                BEGIN
+                    EXECUTE format('REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA %I FROM %I', schema, role);
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE NOTICE 'Error revoking function privileges: schema=%, role=%, detail=%', schema, role, SQLERRM;
+                END;
+            END IF;
+            
+            -- Sequence privileges for non-public schemas
+            IF schema != 'public' THEN
+                BEGIN
+                    EXECUTE format('REVOKE USAGE ON ALL SEQUENCES IN SCHEMA %I FROM %I', schema, role);
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE NOTICE 'Error revoking sequence privileges: schema=%, role=%, detail=%', schema, role, SQLERRM;
+                END;
+            END IF;
+        END LOOP;
+    END LOOP;
+END $revokes$;
 
-REVOKE USAGE ON ALL SEQUENCES IN SCHEMA :"apinspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE USAGE ON ALL SEQUENCES IN SCHEMA :"nspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE USAGE ON ALL SEQUENCES IN SCHEMA :"cfgnspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE USAGE ON SCHEMA :"nspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE USAGE ON SCHEMA :"apinspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
-REVOKE USAGE ON SCHEMA :"cfgnspace" FROM _pgrest_anon, _pgrest_authenticator, _pgrest_user;
+DO $$
+DECLARE
+    role_name text;
+BEGIN
+    -- First, drop all objects owned by these roles
+    FOR role_name IN SELECT rolname 
+                     FROM pg_catalog.pg_roles 
+                     WHERE rolname IN ('api_anon', 'api_master', 'api_user', 
+                                     '_pgrest_anon', '_pgrest_authenticator', '_pgrest_user')
+    LOOP
+        BEGIN
+            EXECUTE format('DROP OWNED BY %I CASCADE', role_name);
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Error dropping objects owned by %: %', role_name, SQLERRM;
+        END;
+        
+        BEGIN
+            EXECUTE format('DROP ROLE IF EXISTS %I', role_name);
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Error dropping role %: %', role_name, SQLERRM;
+        END;
+    END LOOP;
+END $$;
 
-DROP ROLE IF EXISTS _pgrest_anon;
-DROP ROLE IF EXISTS _pgrest_authenticator;
-DROP ROLE IF EXISTS _pgrest_user;
-
-DROP SCHEMA :"nspace" CASCADE;
-DROP SCHEMA :"apinspace" CASCADE;
-DROP SCHEMA :"cfgnspace" CASCADE;
+DO $$
+DECLARE
+    schema_name text;
+BEGIN
+    FOR schema_name IN SELECT unnest(ARRAY[
+        current_setting('app.temp.nspace'),
+        current_setting('app.temp.apinspace'),
+        current_setting('app.temp.cfgnspace')
+    ])
+    LOOP
+        BEGIN
+            EXECUTE format('DROP SCHEMA IF EXISTS %I CASCADE', schema_name);
+            RAISE NOTICE 'Successfully dropped schema: %', schema_name;
+        EXCEPTION WHEN OTHERS THEN
+            RAISE NOTICE 'Error dropping schema %: %', schema_name, SQLERRM;
+        END;
+    END LOOP;
+END $$;
 
 COMMIT;
+
