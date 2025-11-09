@@ -3,6 +3,13 @@
 
 SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
+-- Store the schema names in temporary configuration parameters and a temporary table
+-- for easier use down the line.
+SELECT set_config('app.temp.nspace', :'nspace', false) AS nspace,
+       set_config('app.temp.apinspace', :'apinspace', false) AS apinspace,
+       set_config('app.temp.cfgnspace', :'cfgnspace', false) AS cfgnspace
+       INTO TEMPORARY TABLE __temp_params;
+
 CREATE OR REPLACE FUNCTION :"nspace".random_password(n INTEGER DEFAULT 32) RETURNS TEXT AS
 $$
 BEGIN

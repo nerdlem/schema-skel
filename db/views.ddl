@@ -2,6 +2,13 @@
 
 SET search_path TO :"nspace", :"apinspace", :"cfgnspace", public;
 
+-- Store the schema names in temporary configuration parameters and a temporary table
+-- for easier use down the line.
+SELECT set_config('app.temp.nspace', :'nspace', false) AS nspace,
+       set_config('app.temp.apinspace', :'apinspace', false) AS apinspace,
+       set_config('app.temp.cfgnspace', :'cfgnspace', false) AS cfgnspace
+       INTO TEMPORARY TABLE __temp_params;
+
 CREATE OR REPLACE VIEW :"nspace".current_api_secret AS
 SELECT secret, token_duration
 FROM :"nspace"._api_secrets WHERE during @> NOW()::TIMESTAMP;
